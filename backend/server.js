@@ -18,11 +18,29 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Database Connection
-const db = require('./models');
-const sequelize = db.sequelize;
+let db;
+let sequelize;
+let bootError = null;
+
+try {
+    db = require('./models');
+    sequelize = db.sequelize;
+} catch (err) {
+    console.error('Boot error initializing database models:', err);
+    bootError = err;
+}
 
 // Health Check
 app.get('/health', async (req, res) => {
+    if (bootError) {
+        return res.status(500).json({
+            status: 'error',
+            database: 'failed_to_initialize',
+            error: bootError.message,
+            stack: bootError.stack
+        });
+    }
+
     try {
         await sequelize.authenticate();
         res.json({
