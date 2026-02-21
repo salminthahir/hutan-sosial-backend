@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
     const PSSchemes = sequelize.define('PSSchemes', {
-        code: DataTypes.STRING,
+        code: { type: DataTypes.STRING, unique: true },
         name: DataTypes.STRING,
         description: DataTypes.TEXT
     }, {
@@ -8,15 +8,15 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     const ForestAreaStatuses = sequelize.define('ForestAreaStatuses', {
-        code: DataTypes.STRING,
+        code: { type: DataTypes.STRING, unique: true },
         name: DataTypes.STRING
     }, {
         tableName: 'ForestAreaStatuses'
     });
 
     const PermitForestStatuses = sequelize.define('PermitForestStatuses', {
-        permitId: DataTypes.INTEGER,
-        statusId: DataTypes.INTEGER
+        permitId: { type: DataTypes.INTEGER, unique: 'permit_status_unique' },
+        statusId: { type: DataTypes.INTEGER, unique: 'permit_status_unique' }
     }, {
         tableName: 'PermitForestStatuses'
     });

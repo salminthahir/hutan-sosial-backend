@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
     const Commodities = sequelize.define('Commodities', {
-        name: DataTypes.STRING,
+        name: { type: DataTypes.STRING, unique: true },
         category: DataTypes.STRING,
         iconUrl: DataTypes.TEXT,
         description: DataTypes.TEXT
@@ -9,8 +9,8 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     const PermitCommodities = sequelize.define('PermitCommodities', {
-        permitId: DataTypes.INTEGER,
-        commodityId: DataTypes.INTEGER,
+        permitId: { type: DataTypes.INTEGER, unique: 'permit_commodity_unique' },
+        commodityId: { type: DataTypes.INTEGER, unique: 'permit_commodity_unique' },
         isPrimary: DataTypes.BOOLEAN,
         productionQty: DataTypes.DECIMAL(12, 2),
         productionUnit: DataTypes.STRING,
