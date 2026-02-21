@@ -1,0 +1,62 @@
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
+const { Sequelize } = require('sequelize');
+const config = require('./config/config.js')[process.env.NODE_ENV || 'development'];
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(helmet());
+app.use(cors());
+app.use(morgan('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Database Connection
+const db = require('./models');
+const sequelize = db.sequelize;
+
+// Health Check
+app.get('/health', async (req, res) => {
+    try {
+        await sequelize.authenticate();
+        res.json({
+            status: 'ok',
+            database: 'connected',
+            timestamp: new Date().toISOString(),
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: 'error',
+            database: 'disconnected',
+            error: error.message,
+        });
+    }
+});
+
+// Routes
+// Routes
+const publicRoutes = require('./routes/publicRoutes');
+const advancedRoutes = require('./routes/advancedRoutes');
+
+app.use('/api/public', publicRoutes);
+app.use('/api/advanced', advancedRoutes);
+
+// Start Server
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+    app.listen(PORT, async () => {
+        console.log(`Server running on port ${PORT}`);
+        try {
+            await sequelize.authenticate();
+            console.log('Database connection established successfully.');
+        } catch (error) {
+            console.error('Unable to connect to the database:', error);
+        }
+    });
+}
+
+module.exports = app;
