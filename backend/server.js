@@ -57,6 +57,11 @@ app.get('/health', async (req, res) => {
     }
 });
 
+// Debug
+app.get('/version', (req, res) => {
+    res.json({ version: 'commit-52b31f5' });
+});
+
 // Routes
 // Routes
 const publicRoutes = require('./routes/publicRoutes');
