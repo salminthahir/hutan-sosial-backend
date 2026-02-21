@@ -1,5 +1,4 @@
 require('dotenv').config();
-require('pg'); // Explicitly require pg so Vercel's @vercel/node compiler includes it
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
