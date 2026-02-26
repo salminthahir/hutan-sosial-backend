@@ -50,6 +50,7 @@ const PermitAdminController = {
 
             const { count, rows } = await SocialForestPermits.findAndCountAll({
                 where: whereClause,
+                attributes: { exclude: ['boundary'] },
                 include: [
                     {
                         model: Institutions,

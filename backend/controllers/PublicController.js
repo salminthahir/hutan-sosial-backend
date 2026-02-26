@@ -210,6 +210,7 @@ const PublicController = {
 
             const finalRows = await SocialForestPermits.findAll({
                 where: { id: { [Op.in]: targetIds } },
+                attributes: { exclude: ['boundary'] },
                 include: includeClause, // Full includes
                 order: [['createdAt', 'DESC']]
             });
