@@ -10,7 +10,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false
+}));
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
@@ -62,12 +65,17 @@ app.get('/version', (req, res) => {
 });
 
 // Routes
-// Routes
 const publicRoutes = require('./routes/publicRoutes');
 const advancedRoutes = require('./routes/advancedRoutes');
+const adminRoutes = require('./routes/adminRoutes'); // NEW
 
 app.use('/api/public', publicRoutes);
 app.use('/api/advanced', advancedRoutes);
+app.use('/api/admin', adminRoutes); // NEW
+
+// Serve Admin UI Static Files
+const path = require('path');
+app.use('/admin', express.static(path.join(__dirname, 'admin')));
 
 // Start Server
 if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {

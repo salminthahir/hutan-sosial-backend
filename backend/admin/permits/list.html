@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Izin - Hutan Kita Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                🌲 Hutan Kita
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/admin/dashboard.html" class="nav-item">📊 Dashboard</a>
+                <a href="/admin/permits/list.html" class="nav-item active">📄 Izin Perhutanan</a>
+                <a href="/admin/institutions/list.html" class="nav-item">🏛️ Kelembagaan</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div id="auth-username" style="font-weight: 600; font-size: 14px; margin-bottom: 5px;">Admin</div>
+                <div id="auth-role" style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">ROLE</div>
+                <a href="#" id="logout-btn" style="color: var(--danger); text-decoration: none; font-size: 13px;">🚪
+                    Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <div style="font-weight: 500;">Manajemen Izin Perhutanan Sosial</div>
+            </header>
+
+            <div class="page-content">
+                <div class="page-header">
+                    <h2>Daftar Izin</h2>
+                    <a href="/admin/permits/form.html" class="btn btn-primary">+ Tambah Izin</a>
+                </div>
+
+                <div class="table-container">
+                    <div style="padding: 15px; display: flex; gap: 10px; border-bottom: 1px solid var(--border);">
+                        <input type="text" id="search-input" placeholder="Cari No SK atau nama lembaga..."
+                            style="max-width: 300px;">
+                        <button id="search-btn" class="btn btn-primary">Cari</button>
+                    </div>
+
+                    <table id="permits-table">
+                        <thead>
+                            <tr>
+                                <th>No SK / Tahun</th>
+                                <th>Lembaga</th>
+                                <th>Desa / Kabupaten</th>
+                                <th>Skema</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="permits-body">
+                            <tr>
+                                <td colspan="6" style="text-align: center;">Memuat data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div style="padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+                        <span id="page-info" style="color: var(--text-muted); font-size: 14px;">Halaman 1</span>
+                        <div style="display: flex; gap: 10px;">
+                            <button id="prev-page" class="btn"
+                                style="background: var(--border); color: #fff;">Sebelumnya</button>
+                            <button id="next-page" class="btn"
+                                style="background: var(--border); color: #fff;">Selanjutnya</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/admin/js/api.js"></script>
+    <script src="/admin/js/auth.js"></script>
+    <script src="/admin/js/permits.js"></script>
+</body>
+
+</html>

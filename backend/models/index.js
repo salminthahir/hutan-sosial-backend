@@ -23,6 +23,9 @@ if (config.use_env_variable) {
 const regionModels = require('./Region')(sequelize, Sequelize.DataTypes);
 const institutionModels = require('./Institution')(sequelize, Sequelize.DataTypes);
 
+// Admin Users
+const adminModels = require('./Admin')(sequelize, Sequelize.DataTypes);
+
 // 2. Izin & Komoditas Dasar
 const permitModels = require('./Permit')(sequelize, Sequelize.DataTypes);
 const commodityModels = require('./Commodity')(sequelize, Sequelize.DataTypes);
@@ -46,7 +49,8 @@ const allModels = {
     ...socialModels,
     ...marketModels,
     ...riskModels,
-    ...priorityModels
+    ...priorityModels,
+    ...adminModels
 };
 
 // Add to db object

@@ -244,6 +244,7 @@ const PublicController = {
                     })) || [],
                     forestStatus: p.permitForestStatuses?.map(pfs => pfs.status?.name) || [],
                     members: (p.institution && p.institution.members && p.institution.members.length > 0) ? p.institution.members[0].totalMembers : 0,
+                    households: (p.institution && p.institution.members && p.institution.members.length > 0) ? p.institution.members[0].totalHouseholds : 0,
                     hasCoords: !!p.location,
                     // Quick stats for badges
                     badges: [
@@ -438,7 +439,7 @@ const PublicController = {
                 permitYear: p.permitYear,
                 status: p.permitStatus,
                 area: parseFloat(p.areaPermitted || 0),
-                location: { village, district, regency, province, geo: p.location },
+                location: { village, district, regency, province, geo: p.location, boundary: p.boundary },
                 scheme: p.scheme,
                 institution: p.institution,
                 commodities: p.permitCommodities,

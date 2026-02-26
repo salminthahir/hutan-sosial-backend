@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Hutan Kita Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                🌲 Hutan Kita
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/admin/dashboard.html" class="nav-item active">📊 Dashboard</a>
+                <a href="/admin/permits/list.html" class="nav-item">📄 Izin Perhutanan</a>
+                <a href="/admin/institutions/list.html" class="nav-item">🏛️ Kelembagaan</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div id="auth-username" style="font-weight: 600; font-size: 14px; margin-bottom: 5px;">Admin</div>
+                <div id="auth-role" style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">ROLE</div>
+                <a href="#" id="logout-btn" style="color: var(--danger); text-decoration: none; font-size: 13px;">🚪
+                    Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <div style="font-weight: 500;">Beranda Dashboard</div>
+            </header>
+
+            <div class="page-content">
+                <div class="page-header">
+                    <h2>Ringkasan Data</h2>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">Total Izin</div>
+                        <div class="stat-value" id="stat-permits">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Total Kelembagaan</div>
+                        <div class="stat-value" id="stat-institutions">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Total Luas (Ha)</div>
+                        <div class="stat-value" id="stat-area">-</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Total KK</div>
+                        <div class="stat-value" id="stat-households">-</div>
+                    </div>
+                </div>
+
+                <div class="table-container" style="padding: 20px; background: var(--bg-card);">
+                    <h3>Selamat Datang di Admin Panel</h3>
+                    <p style="color: var(--text-muted); margin-top: 10px;">
+                        Gunakan menu di samping kiri untuk mengelola data izin perhutanan sosial dan data kelembagaan.
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/admin/js/api.js"></script>
+    <script src="/admin/js/auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const res = await API.get('/api/admin/dashboard');
+            if (res.success) {
+                document.getElementById('stat-permits').textContent = res.data.totalPermits.toLocaleString('id-ID');
+                document.getElementById('stat-institutions').textContent = res.data.totalInstitutions.toLocaleString('id-ID');
+
+                // Format area with 2 decimal places if needed
+                const area = parseFloat(res.data.totalArea);
+                document.getElementById('stat-area').textContent = area.toLocaleString('id-ID', { maximumFractionDigits: 2 });
+
+                document.getElementById('stat-households').textContent = res.data.totalHouseholds.toLocaleString('id-ID');
+            }
+        });
+    </script>
+</body>
+
+</html>

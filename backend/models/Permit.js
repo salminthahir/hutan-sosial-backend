@@ -81,6 +81,12 @@ module.exports = (sequelize, DataTypes) => {
         if (models.MonitoringLogs) {
             SocialForestPermits.hasMany(models.MonitoringLogs, { foreignKey: 'permitId', as: 'monitoringLogs' });
         }
+        if (models.BiophysicalProfiles) {
+            SocialForestPermits.hasOne(models.BiophysicalProfiles, { foreignKey: 'permitId', as: 'biophysicalProfile' });
+        }
+        if (models.CommoditySuitabilities) {
+            SocialForestPermits.hasMany(models.CommoditySuitabilities, { foreignKey: 'permitId', as: 'commoditySuitabilities' });
+        }
     };
 
     ForestAreaStatuses.associate = (models) => {

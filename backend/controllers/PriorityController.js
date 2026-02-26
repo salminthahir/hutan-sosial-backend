@@ -4,6 +4,7 @@ const {
     MonitoringLogs,
     Institutions,
     Villages,
+    Districts,
     Regencies,
     Sequelize
 } = require('../models');
@@ -75,7 +76,15 @@ exports.getPriorityDetail = async (req, res) => {
                     attributes: ['permitNumber', 'permitYear', 'areaPermitted'],
                     include: [
                         { model: Institutions, as: 'institution', attributes: ['fullName'] },
-                        { model: Villages, as: 'village', include: [{ model: Regencies, as: 'district' }] } // Check association path! Village->District? No, Village->District->Regency
+                        {
+                            model: Villages,
+                            as: 'village',
+                            include: [{
+                                model: Districts,
+                                as: 'district',
+                                include: [{ model: Regencies, as: 'regency' }]
+                            }]
+                        }
                     ]
                 }
             ]
