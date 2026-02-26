@@ -7,20 +7,13 @@
             "config": {
                 "includeFiles": [
                     "backend/node_modules/pg/**",
-                    "backend/node_modules/pg-hstore/**"
+                    "backend/node_modules/pg-hstore/**",
+                    "backend/admin/**"
                 ]
             }
         }
     ],
     "routes": [
-        {
-            "src": "/admin",
-            "dest": "/backend/admin/index.html"
-        },
-        {
-            "src": "/admin/(.*)",
-            "dest": "/backend/admin/$1"
-        },
         {
             "src": "/(.*)",
             "dest": "/backend/server.js"
