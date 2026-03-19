@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hutan Kita - Admin Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+
+<body class="login-bg">
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h2>Hutan Sosial Malut</h2>
+                <p>Admin Dashboard</p>
+            </div>
+
+            <div id="error-alert" class="alert alert-error hidden"></div>
+
+            <form id="login-form" onsubmit="event.preventDefault(); window.handleLogin(event); return false;">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required placeholder="admin@hutankita.id" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required placeholder="••••••••"
+                        autocomplete="current-password">
+                </div>
+                <button type="submit" id="login-btn" class="btn btn-primary btn-block">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/admin/js/api.js"></script>
+    <script>
+        // Check if already logged in
+        try {
+            if (typeof API !== 'undefined' && API.getToken()) {
+                window.location.href = '/admin/dashboard.html';
+            }
+        } catch (e) {
+            console.error("Token check failed:", e);
+        }
+
+        window.handleLogin = async function (e) {
+            e.preventDefault();
+            console.log("Login form submitted!");
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorAlert = document.getElementById('error-alert');
+            const submitBtn = document.getElementById('login-btn');
+
+            errorAlert.classList.add('hidden');
+            submitBtn.textContent = 'Memproses...';
+            submitBtn.disabled = true;
+
+            try {
+                const res = await API.post('/api/admin/auth/login', { email, password });
+                console.log("Login response:", res);
+
+                if (res.success) {
+                    API.setToken(res.data.token);
+                    window.location.href = '/admin/dashboard.html';
+                } else {
+                    errorAlert.textContent = res.message || 'Login gagal';
+                    errorAlert.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Server connection error:", error);
+                errorAlert.textContent = 'Gagal terhubung ke server';
+                errorAlert.classList.remove('hidden');
+            } finally {
+                submitBtn.textContent = 'Login';
+                submitBtn.disabled = false;
+            }
+            return false;
+        };
+    </script>
+</body>
+
+</html>

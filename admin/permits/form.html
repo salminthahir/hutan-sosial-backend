@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Izin - Hutan Kita Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/admin.css">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            z-index: 1;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                🌲 Hutan Kita
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/admin/dashboard.html" class="nav-item">📊 Dashboard</a>
+                <a href="/admin/permits/list.html" class="nav-item active">📄 Izin Perhutanan</a>
+                <a href="/admin/institutions/list.html" class="nav-item">🏛️ Kelembagaan</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div id="auth-username" style="font-weight: 600; font-size: 14px; margin-bottom: 5px;">Admin</div>
+                <div id="auth-role" style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">ROLE</div>
+                <a href="#" id="logout-btn" style="color: var(--danger); text-decoration: none; font-size: 13px;">🚪
+                    Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <div style="font-weight: 500;">Manajemen Izin Perhutanan Sosial</div>
+            </header>
+
+            <div class="page-content">
+                <div class="page-header" style="justify-content: flex-start; gap: 20px;">
+                    <a href="/admin/permits/list.html" class="btn"
+                        style="background: rgba(255,255,255,0.1); color: var(--text-main);">← Kembali</a>
+                    <h2 id="form-title">Tambah Izin Baru</h2>
+                </div>
+
+                <div id="alert-msg" class="alert hidden"></div>
+
+                <div class="table-container" style="padding: 30px; background: var(--bg-card);">
+                    <form id="permit-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Nomor SK</label>
+                                <input type="text" id="permitNumber" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Tahun SK</label>
+                                <input type="number" id="permitYear" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Kelembagaan (KTH / LMDH, dll)</label>
+                                <select id="institutionId" required>
+                                    <option value="">-- Pilih Lembaga --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Desa Lokasi</label>
+                                <select id="villageId" required>
+                                    <option value="">-- Pilih Desa --</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Skema Peminjaman</label>
+                                <select id="schemeId" required>
+                                    <option value="">-- Pilih Skema --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Status Izin</label>
+                                <select id="permitStatus">
+                                    <option value="Proses">Proses</option>
+                                    <option value="Izin">Izin (Aktif)</option>
+                                    <option value="Dicabut">Dicabut</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Luas Diizinkan (Ha)</label>
+                                <input type="number" step="0.01" id="areaPermitted">
+                            </div>
+                            <div class="form-group">
+                                <label>Luas Proses (Ha)</label>
+                                <input type="number" step="0.01" id="areaInProcess">
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label>Peta Batas Kawasan (Polygon)</label>
+                                <div id="map"></div>
+                                <textarea id="geojsonInput" rows="4"
+                                    placeholder="Atau paste format GeoJSON di sini..."></textarea>
+                            </div>
+                            <div class="form-group full-width">
+                                <button type="button" id="update-boundary-btn" class="btn hidden"
+                                    style="background: #3b82f6; color: white;">💾 Simpan Peta GeoJSON</button>
+                                <p id="boundary-help" class="hidden"
+                                    style="color: var(--text-muted); font-size: 13px; margin-top: 5px;">Simpan izin
+                                    terlebih dahulu untuk mengupdate peta kawasan.</p>
+                            </div>
+                        </div>
+
+                        <div
+                            style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px; display: flex; justify-content: flex-end;">
+                            <button type="submit" id="save-btn" class="btn btn-primary"
+                                style="padding: 12px 30px; font-size: 16px;">Simpan Data Izin</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/admin/js/api.js"></script>
+    <script src="/admin/js/auth.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const permitId = urlParams.get('id');
+        let map, polygonLayer;
+
+        async function loadReferences() {
+            // Load institutions
+            const instRes = await API.get('/api/admin/institutions?limit=1000');
+            if (instRes.success) {
+                const select = document.getElementById('institutionId');
+                instRes.data.forEach(i => {
+                    const opt = document.createElement('option');
+                    opt.value = i.id;
+                    opt.textContent = i.fullName || i.shortName;
+                    select.appendChild(opt);
+                });
+            }
+
+            // Load villages
+            const villageRes = await API.get('/api/admin/reference/villages?limit=1000');
+            if (villageRes.success) {
+                const select = document.getElementById('villageId');
+                villageRes.data.forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v.id;
+                    opt.textContent = `${v.name} (Kab. ${v.district?.regency?.name || '-'})`;
+                    select.appendChild(opt);
+                });
+            }
+
+            // Load schemes
+            const schemeRes = await API.get('/api/admin/reference/schemes');
+            if (schemeRes.success) {
+                const select = document.getElementById('schemeId');
+                schemeRes.data.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.textContent = s.name;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        function initMap(boundaryGeoJSON) {
+            map = L.map('map').setView([-0.789, 113.921], 5); // Default Indonesia view
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+            if (boundaryGeoJSON) {
+                try {
+                    polygonLayer = L.geoJSON(boundaryGeoJSON, {
+                        style: { color: '#10b981', weight: 2, fillOpacity: 0.2 }
+                    }).addTo(map);
+                    map.fitBounds(polygonLayer.getBounds());
+                    document.getElementById('geojsonInput').value = JSON.stringify(boundaryGeoJSON);
+                } catch (e) {
+                    console.error("Invalid geometry to map");
+                }
+            }
+        }
+
+        async function loadPermit() {
+            if (!permitId) {
+                initMap(null);
+                document.getElementById('boundary-help').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('form-title').textContent = 'Edit Izin';
+            document.getElementById('update-boundary-btn').classList.remove('hidden');
+
+            const res = await API.get(`/api/admin/permits/${permitId}`);
+            if (res.success && res.data) {
+                const p = res.data;
+                document.getElementById('permitNumber').value = p.permitNumber || '';
+                document.getElementById('permitYear').value = p.permitYear || '';
+                document.getElementById('institutionId').value = p.institutionId || '';
+                document.getElementById('villageId').value = p.villageId || '';
+                document.getElementById('schemeId').value = p.schemeId || '';
+                document.getElementById('permitStatus').value = p.permitStatus || 'Proses';
+                document.getElementById('areaPermitted').value = p.areaPermitted || '';
+                document.getElementById('areaInProcess').value = p.areaInProcess || '';
+
+                initMap(p.boundary);
+            }
+        }
+
+        document.getElementById('permit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('save-btn');
+            const alertBox = document.getElementById('alert-msg');
+            btn.disabled = true;
+            btn.textContent = 'Menyimpan...';
+            alertBox.classList.add('hidden');
+
+            const payload = {
+                permitNumber: document.getElementById('permitNumber').value,
+                permitYear: parseInt(document.getElementById('permitYear').value),
+                institutionId: parseInt(document.getElementById('institutionId').value),
+                villageId: parseInt(document.getElementById('villageId').value),
+                schemeId: parseInt(document.getElementById('schemeId').value),
+                permitStatus: document.getElementById('permitStatus').value,
+                areaPermitted: parseFloat(document.getElementById('areaPermitted').value) || 0,
+                areaInProcess: parseFloat(document.getElementById('areaInProcess').value) || 0
+            };
+
+            let res;
+            if (permitId) {
+                res = await API.put(`/api/admin/permits/${permitId}`, payload);
+            } else {
+                res = await API.post('/api/admin/permits', payload);
+            }
+
+            btn.disabled = false;
+            btn.textContent = 'Simpan Data Izin';
+
+            if (res.success) {
+                alertBox.className = 'alert badge-success';
+                alertBox.textContent = res.message;
+                alertBox.classList.remove('hidden');
+
+                if (!permitId && res.data && res.data.id) {
+                    // Redirect to edit mode so boundary can be saved
+                    setTimeout(() => window.location.href = `/admin/permits/form.html?id=${res.data.id}`, 1000);
+                }
+            } else {
+                alertBox.className = 'alert alert-error';
+                alertBox.textContent = res.message || 'Gagal menyimpan data';
+                alertBox.classList.remove('hidden');
+            }
+        });
+
+        // Boundary Update
+        document.getElementById('update-boundary-btn').addEventListener('click', async () => {
+            if (!permitId) return;
+            const geojsonStr = document.getElementById('geojsonInput').value;
+            const btn = document.getElementById('update-boundary-btn');
+
+            if (!geojsonStr) {
+                alert('Teks GeoJSON kosong');
+                return;
+            }
+
+            try {
+                const geojson = JSON.parse(geojsonStr);
+                btn.disabled = true;
+                btn.textContent = 'Menyimpan...';
+
+                const res = await API.put(`/api/admin/permits/${permitId}/boundary`, { geojson });
+
+                if (res.success) {
+                    alert('Batas kawasan berhasil disimpan!');
+                    // Refresh map layer
+                    if (polygonLayer) map.removeLayer(polygonLayer);
+                    polygonLayer = L.geoJSON(geojson, {
+                        style: { color: '#10b981', weight: 2, fillOpacity: 0.2 }
+                    }).addTo(map);
+                    map.fitBounds(polygonLayer.getBounds());
+                } else {
+                    alert(res.message || 'Gagal menyimpan geojson');
+                }
+            } catch (err) {
+                alert('Format GeoJSON tidak valid');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💾 Simpan Peta GeoJSON';
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadReferences();
+            await loadPermit();
+        });
+    </script>
+</body>
+
+</html>

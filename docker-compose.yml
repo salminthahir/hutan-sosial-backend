@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # Database Service
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: hutan_kita_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-hutan_kita_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-hutan_kita_password}
+      POSTGRES_DB: ${DB_NAME:-hutan_kita_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - hutan_net
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME:-hutan_kita_user}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Service
+  api:
+    build: .
+    container_name: hutan_kita_api
+    restart: always
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+      - DB_HOST=db
+      - DB_USERNAME=${DB_USERNAME:-hutan_kita_user}
+      - DB_PASSWORD=${DB_PASSWORD:-hutan_kita_password}
+      - DB_NAME=${DB_NAME:-hutan_kita_db}
+      - JWT_SECRET=${JWT_SECRET}
+      - MAPBOX_ACCESS_TOKEN=${MAPBOX_ACCESS_TOKEN}
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - hutan_net
+
+  # Adminer (Optional - for DB management)
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - hutan_net
+
+volumes:
+  pg_data:
+
+
+networks:
+  hutan_net:
+    driver: bridge

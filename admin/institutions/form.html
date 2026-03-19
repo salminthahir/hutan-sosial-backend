@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Lembaga - Hutan Kita Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/admin/css/admin.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                🌲 Hutan Kita
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/admin/dashboard.html" class="nav-item">📊 Dashboard</a>
+                <a href="/admin/permits/list.html" class="nav-item">📄 Izin Perhutanan</a>
+                <a href="/admin/institutions/list.html" class="nav-item active">🏛️ Kelembagaan</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div id="auth-username" style="font-weight: 600; font-size: 14px; margin-bottom: 5px;">Admin</div>
+                <div id="auth-role" style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">ROLE</div>
+                <a href="#" id="logout-btn" style="color: var(--danger); text-decoration: none; font-size: 13px;">🚪
+                    Logout</a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="topbar">
+                <div style="font-weight: 500;">Manajemen Kelembagaan Perhutanan Sosial</div>
+            </header>
+
+            <div class="page-content">
+                <div class="page-header" style="justify-content: flex-start; gap: 20px;">
+                    <a href="/admin/institutions/list.html" class="btn"
+                        style="background: rgba(255,255,255,0.1); color: var(--text-main);">← Kembali</a>
+                    <h2 id="form-title">Tambah Kelembagaan Baru</h2>
+                </div>
+
+                <div id="alert-msg" class="alert hidden"></div>
+
+                <div class="table-container" style="padding: 30px; background: var(--bg-card); max-width: 800px;">
+                    <form id="institution-form">
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 20px;">
+                            <div class="form-group">
+                                <label>Nama Lengkap Lembaga (Contoh: Kelompok Tani Hutan Wana Bakti)</label>
+                                <input type="text" id="fullName" required>
+                            </div>
+
+                            <div class="form-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div>
+                                    <label>Singkatan (Opsional, Contoh: KTH Wana Bakti)</label>
+                                    <input type="text" id="shortName">
+                                </div>
+                                <div>
+                                    <label>Tipe Kelembagaan</label>
+                                    <select id="typeId" required>
+                                        <option value="">-- Pilih Tipe --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group"
+                                style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                                <div>
+                                    <label>Jumlah Anggota Orang</label>
+                                    <input type="number" id="membersCount" min="0">
+                                </div>
+                                <div>
+                                    <label>Jumlah Kepala Keluarga (KK)</label>
+                                    <input type="number" id="householdsCount" min="0">
+                                </div>
+                                <div>
+                                    <label>Status Aktif</label>
+                                    <select id="isActive">
+                                        <option value="true">Aktif</option>
+                                        <option value="false">Non-Aktif</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            style="margin-top: 30px; border-top: 1px solid var(--border); padding-top: 20px; display: flex; justify-content: flex-end;">
+                            <button type="submit" id="save-btn" class="btn btn-primary"
+                                style="padding: 12px 30px; font-size: 16px;">Simpan Data Kelembagaan</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/admin/js/api.js"></script>
+    <script src="/admin/js/auth.js"></script>
+    <script src="/admin/js/institutions.js"></script>
+</body>
+
+</html>
