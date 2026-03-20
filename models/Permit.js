@@ -26,7 +26,7 @@ module.exports = (sequelize, DataTypes) => {
         villageId: DataTypes.INTEGER,
         schemeId: DataTypes.INTEGER,
         location: DataTypes.GEOMETRY('POINT', 4326),
-        boundary: DataTypes.GEOMETRY('POLYGON', 4326),
+        boundary: DataTypes.GEOMETRY('GEOMETRY', 4326),
         permitNumber: DataTypes.TEXT,
         permitYear: DataTypes.INTEGER,
         permitStatus: DataTypes.STRING,
@@ -40,6 +40,7 @@ module.exports = (sequelize, DataTypes) => {
         hasHandover: DataTypes.BOOLEAN,
         hasLandConflict: DataTypes.BOOLEAN,
         roadAccessType: DataTypes.STRING,
+        portAccess: DataTypes.BOOLEAN,
         distanceToMarket: DataTypes.DECIMAL(8, 2),
         notes: DataTypes.TEXT
     }, {
