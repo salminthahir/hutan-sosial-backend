@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { AdminUsers } = require('../models');
+const { AdminUsers, Regencies } = require('../models');
 const { JWT_SECRET } = require('../middleware/authMiddleware');
 
 const AuthController = {
@@ -14,7 +14,10 @@ const AuthController = {
             }
 
             // Find User
-            const user = await AdminUsers.findOne({ where: { email } });
+            const user = await AdminUsers.findOne({
+                where: { email },
+                include: [{ model: Regencies, as: 'regency', attributes: ['id', 'name'] }]
+            });
             if (!user) {
                 return res.status(401).json({ success: false, message: 'Kredensial tidak valid' });
             }
@@ -36,7 +39,7 @@ const AuthController = {
 
             // Generate Token
             const token = jwt.sign(
-                { id: user.id, role: user.role },
+                { id: user.id, role: user.role, regencyId: user.regencyId },
                 JWT_SECRET,
                 { expiresIn: '24h' }
             );
@@ -50,7 +53,9 @@ const AuthController = {
                         id: user.id,
                         username: user.username,
                         email: user.email,
-                        role: user.role
+                        role: user.role,
+                        regencyId: user.regencyId,
+                        regency: user.regency
                     }
                 }
             });
@@ -71,6 +76,7 @@ const AuthController = {
                     username: user.username,
                     email: user.email,
                     role: user.role,
+                    regencyId: user.regencyId,
                     lastLoginAt: user.lastLoginAt
                 }
             });

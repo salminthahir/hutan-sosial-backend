@@ -75,12 +75,13 @@ const InstitutionAdminController = {
     // 3. Create
     async create(req, res) {
         try {
-            const { typeId, shortName, fullName, isActive, membersCount, householdsCount } = req.body;
+            const { typeId, shortName, fullName, isActive, chairmanName, penyuluhName, penyuluhPhone, membersCount, householdsCount } = req.body;
 
             const newInst = await Institutions.create({
                 institutionTypeId: typeId || null,
                 shortName,
                 fullName,
+                chairmanName: chairmanName || null,
                 isActive: isActive ?? true
             });
 
@@ -89,6 +90,16 @@ const InstitutionAdminController = {
                     institutionId: newInst.id,
                     totalMembers: membersCount || 0,
                     totalHouseholds: householdsCount || 0
+                });
+            }
+
+            if (penyuluhName || penyuluhPhone) {
+                const combinedContact = `${penyuluhName || '-'} | ${penyuluhPhone || '-'}`;
+                await InstitutionContacts.create({
+                    institutionId: newInst.id,
+                    contactType: 'penyuluh',
+                    contactValue: combinedContact,
+                    isPrimary: true
                 });
             }
 
@@ -103,7 +114,7 @@ const InstitutionAdminController = {
     async update(req, res) {
         try {
             const { id } = req.params;
-            const { typeId, shortName, fullName, isActive, membersCount, householdsCount } = req.body;
+            const { typeId, shortName, fullName, isActive, chairmanName, penyuluhName, penyuluhPhone, membersCount, householdsCount } = req.body;
 
             const inst = await Institutions.findByPk(id);
             if (!inst) {
@@ -114,6 +125,7 @@ const InstitutionAdminController = {
                 institutionTypeId: typeId || inst.institutionTypeId,
                 shortName: shortName ?? inst.shortName,
                 fullName: fullName ?? inst.fullName,
+                chairmanName: chairmanName ?? inst.chairmanName,
                 isActive: isActive ?? inst.isActive
             });
 
@@ -130,6 +142,22 @@ const InstitutionAdminController = {
                         institutionId: id,
                         totalMembers: membersCount || 0,
                         totalHouseholds: householdsCount || 0
+                    });
+                }
+            }
+
+            // Update Penyuluh Contact
+            if (penyuluhName !== undefined || penyuluhPhone !== undefined) {
+                const combinedContact = `${penyuluhName || '-'} | ${penyuluhPhone || '-'}`;
+                const contactRecord = await InstitutionContacts.findOne({ where: { institutionId: id, contactType: 'penyuluh' } });
+                if (contactRecord) {
+                    await contactRecord.update({ contactValue: combinedContact });
+                } else {
+                    await InstitutionContacts.create({
+                        institutionId: id,
+                        contactType: 'penyuluh',
+                        contactValue: combinedContact,
+                        isPrimary: true
                     });
                 }
             }

@@ -21,6 +21,10 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             defaultValue: 'admin' // superadmin, admin, viewer
         },
+        regencyId: {
+            type: DataTypes.INTEGER,
+            allowNull: true // null = superadmin (akses semua kabupaten)
+        },
         isActive: {
             type: DataTypes.BOOLEAN,
             defaultValue: true
@@ -32,6 +36,13 @@ module.exports = (sequelize, DataTypes) => {
     }, {
         tableName: 'AdminUsers'
     });
+
+    AdminUsers.associate = (models) => {
+        AdminUsers.belongsTo(models.Regencies, {
+            foreignKey: 'regencyId',
+            as: 'regency'
+        });
+    };
 
     return { AdminUsers };
 };

@@ -43,9 +43,10 @@ const PermitAdminController = {
                 whereClause.permitStatus = status;
             }
 
-            // Filter by regency
-            if (regency) {
-                whereClause['$village.district.regency.id$'] = regency;
+            // Regency scope: auto-filter berdasarkan kabupaten admin
+            const regencyFilter = req.regencyScope || (regency ? parseInt(regency) : null);
+            if (regencyFilter) {
+                whereClause['$village.district.regency.id$'] = regencyFilter;
             }
 
             const { count, rows } = await SocialForestPermits.findAndCountAll({
@@ -160,14 +161,38 @@ const PermitAdminController = {
 
     // 3. Create Permit
     async create(req, res) {
+        const t = await SocialForestPermits.sequelize.transaction();
         try {
-            const data = req.body;
-            // Handle spatial data logic appropriately (assuming standard GeoJSON object input for boundary and location)
-            // For now passing through as standard objects if handled by ORM, or require custom ST_GeomFromGeoJSON
+            const { commodities, forestStatuses, kups, boundary, ...data } = req.body;
 
-            const newPermit = await SocialForestPermits.create(data);
+            // Optional: Handle empty strings gracefully for numeric/date fields
+            Object.keys(data).forEach(key => {
+                if (data[key] === '') data[key] = null;
+            });
+
+            if (boundary) {
+                // Ensure boundary is a valid GeoJSON object
+                data.boundary = boundary;
+            }
+
+            const newPermit = await SocialForestPermits.create(data, { transaction: t });
+
+            if (commodities && Array.isArray(commodities)) {
+                await newPermit.setCommodities(commodities, { transaction: t });
+            }
+            if (forestStatuses && Array.isArray(forestStatuses)) {
+                await newPermit.setForestStatuses(forestStatuses, { transaction: t });
+            }
+
+            if (kups && Array.isArray(kups)) {
+                const kupsData = kups.map(k => ({ ...k, permitId: newPermit.id }));
+                await KUPS.bulkCreate(kupsData, { transaction: t });
+            }
+
+            await t.commit();
             res.json({ success: true, message: 'Izin berhasil ditambahkan', data: newPermit });
         } catch (error) {
+            await t.rollback();
             console.error('Error creating permit:', error);
             res.status(500).json({ success: false, message: error.message });
         }
@@ -175,23 +200,46 @@ const PermitAdminController = {
 
     // 4. Update Permit
     async update(req, res) {
+        const t = await SocialForestPermits.sequelize.transaction();
         try {
             const { id } = req.params;
-            const data = req.body;
+            const { commodities, forestStatuses, kups, boundary, location, ...data } = req.body;
 
-            const permit = await SocialForestPermits.findByPk(id);
+            const permit = await SocialForestPermits.findByPk(id, { transaction: t });
             if (!permit) {
+                await t.rollback();
                 return res.status(404).json({ success: false, message: 'Izin tidak ditemukan' });
             }
 
-            // Exclude boundary/location updates from standard JSON payload to avoid spatial string coercion issues
-            // They have their own specialized endpoint, or need SQL wrapping
-            delete data.boundary;
-            delete data.location;
+            // Optional: Handle empty strings gracefully for numeric/date fields
+            Object.keys(data).forEach(key => {
+                if (data[key] === '') data[key] = null;
+            });
 
-            await permit.update(data);
+            if (boundary) {
+                // Ensure boundary is a valid GeoJSON object
+                data.boundary = boundary;
+            }
+
+            await permit.update(data, { transaction: t });
+
+            if (commodities && Array.isArray(commodities)) {
+                await permit.setCommodities(commodities, { transaction: t });
+            }
+            if (forestStatuses && Array.isArray(forestStatuses)) {
+                await permit.setForestStatuses(forestStatuses, { transaction: t });
+            }
+
+            if (kups && Array.isArray(kups)) {
+                await KUPS.destroy({ where: { permitId: id }, transaction: t });
+                const kupsData = kups.map(k => ({ ...k, permitId: id }));
+                await KUPS.bulkCreate(kupsData, { transaction: t });
+            }
+
+            await t.commit();
             res.json({ success: true, message: 'Izin berhasil diperbarui', data: permit });
         } catch (error) {
+            await t.rollback();
             console.error('Error updating permit:', error);
             res.status(500).json({ success: false, message: error.message });
         }

@@ -21,6 +21,10 @@ const ReferenceAdminController = {
                 whereClause.name = { [Op.iLike]: `%${q}%` };
             }
 
+            if (req.regencyScope) {
+                whereClause['$district.regency.id$'] = req.regencyScope;
+            }
+
             const villages = await Villages.findAll({
                 where: whereClause,
                 limit: parseInt(limit),
@@ -99,6 +103,19 @@ const ReferenceAdminController = {
             res.json({ success: true, data: items });
         } catch (error) {
             console.error('Error fetching institution types:', error);
+            res.status(500).json({ success: false, message: 'Server error' });
+        }
+    },
+
+    // 6. Get Regencies (kabupaten/kota)
+    async getRegencies(req, res) {
+        try {
+            const items = await Regencies.findAll({
+                order: [['name', 'ASC']]
+            });
+            res.json({ success: true, data: items });
+        } catch (error) {
+            console.error('Error fetching regencies:', error);
             res.status(500).json({ success: false, message: 'Server error' });
         }
     }
